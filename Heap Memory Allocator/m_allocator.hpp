@@ -59,6 +59,7 @@ This allocator uses mmap to obtain large memory blocks from the kernel and munma
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <sys/types.h>
 
 
 
@@ -96,7 +97,7 @@ struct Heap {
 // Initialize the heap with a given memory block and size creating the initial free chunk
 void* heap_init(void* memory, size_t size)
 {
-
+	void* heap_start = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 }
 
 
