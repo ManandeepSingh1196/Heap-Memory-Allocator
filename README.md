@@ -1,13 +1,13 @@
 # Memory Allocator in C++
 
-This project is my attempt to write a **custom memory allocator** in C++ from scratch.  
+This project is my attempt to write a **custom memory heap** in C/C++ from scratch.  
 The goal is to understand how memory management works at a low level and to get hands-on with system calls that usually stay hidden behind `malloc` and `new`.
 
 ---
 
 ## Why?
 Every program depends on dynamic memory allocation, but most developers never see how it actually works.  
-By building my own allocator, I’ll learn:
+By building my own heap, I’ll learn:
 - How operating systems provide memory to processes.
 - How allocators track free and used blocks.
 
