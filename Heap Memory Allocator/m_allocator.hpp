@@ -1,56 +1,54 @@
 /*
-Heap memory allocator using kernel-level memory management (mmap/munmap) for allocation and deallocation.
+Heap memory allocator using Windows kernel-level memory management (VirtualAlloc/VirtualFree) for allocation and deallocation.
 
-This allocator leverages the operating system's native memory management functions:
-  - mmap:   Maps memory pages from the kernel into the process's address space.
-  - munmap: Unmaps (releases) previously mapped memory pages.
+This allocator leverages the Windows operating system's native memory management functions:
+  - VirtualAlloc:   Reserves or commits memory pages in the process's address space.
+  - VirtualFree:    Releases or decommits previously allocated memory pages.
 
---- mmap ---
-mmap is a system call that allocates memory by mapping files or devices into memory.
-In the context of a heap allocator, mmap is typically used to request anonymous memory from the OS.
-
-Prototype:
-  void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset);
-
-Parameters:
-  - addr:   Suggested starting address for the mapping (usually nullptr for automatic selection).
-  - length: Number of bytes to map (must be a multiple of the system's page size).
-  - prot:   Memory protection flags (e.g., PROT_READ | PROT_WRITE).
-  - flags:  Mapping flags (e.g., MAP_PRIVATE | MAP_ANONYMOUS).
-  - fd:     File descriptor (set to -1 when using MAP_ANONYMOUS).
-  - offset: Offset in the file (set to 0 for anonymous mapping).
-
-Return Value:
-  - On success: Returns a pointer to the mapped memory region.
-  - On failure: Returns MAP_FAILED ((void*)-1).
-
-Usage Example:
-  void* mem = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-
---- munmap ---
-munmap is used to unmap a region of memory previously mapped by mmap, releasing it back to the OS.
+--- VirtualAlloc ---
+VirtualAlloc is a Windows API function that allocates memory by reserving or committing pages in the virtual address space of the calling process.
 
 Prototype:
-  int munmap(void* addr, size_t length);
+  LPVOID VirtualAlloc(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect);
 
 Parameters:
-  - addr:   Starting address of the memory region to unmap.
-  - length: Length of the region to unmap (must match the length used in mmap).
+  - lpAddress:         Suggested starting address for the allocation (usually nullptr for automatic selection).
+  - dwSize:            Number of bytes to allocate (should be a multiple of the system's page size).
+  - flAllocationType:  Type of allocation (e.g., MEM_RESERVE, MEM_COMMIT).
+  - flProtect:         Memory protection flags (e.g., PAGE_READWRITE).
 
 Return Value:
-  - On success: Returns 0.
-  - On failure: Returns -1.
+  - On success: Returns a pointer to the allocated memory region.
+  - On failure: Returns nullptr.
 
 Usage Example:
-  munmap(mem, size);
+  void* mem = VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+--- VirtualFree ---
+VirtualFree is used to release or decommit a region of memory previously allocated by VirtualAlloc.
+
+Prototype:
+  BOOL VirtualFree(LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType);
+
+Parameters:
+  - lpAddress:   Starting address of the memory region to free.
+  - dwSize:      Size of the region to free (0 to release the entire region).
+  - dwFreeType:  Type of free operation (e.g., MEM_RELEASE, MEM_DECOMMIT).
+
+Return Value:
+  - On success: Returns nonzero.
+  - On failure: Returns zero.
+
+Usage Example:
+  VirtualFree(mem, 0, MEM_RELEASE);
 
 --- Notes ---
-- These functions are available on POSIX-compliant systems (Linux, macOS, etc.).
-- On Windows, similar functionality is provided by VirtualAlloc/VirtualFree.
+- These functions are available on Windows systems.
+- On POSIX systems (Linux, macOS, etc.), similar functionality is provided by mmap/munmap.
 - Proper alignment and size (multiple of page size) are required for portability and correctness.
 - Always check the return values for errors when using these system calls.
 
-This allocator uses mmap to obtain large memory blocks from the kernel and munmap to release them when no longer needed.
+This allocator uses VirtualAlloc to obtain large memory blocks from the Windows kernel and VirtualFree to release them when no longer needed.
 */
 
 
@@ -59,7 +57,8 @@ This allocator uses mmap to obtain large memory blocks from the kernel and munma
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
-#include <sys/types.h>
+#include <windows.h>
+
 
 
 
@@ -97,7 +96,7 @@ struct Heap {
 // Initialize the heap with a given memory block and size creating the initial free chunk
 void* heap_init(void* memory, size_t size)
 {
-	void* heap_start = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	void* heap_start = VirtualAlloc;
 }
 
 

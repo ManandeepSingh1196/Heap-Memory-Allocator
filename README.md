@@ -16,19 +16,40 @@ By building my own heap, I’ll learn:
 ## System Calls Used
 The kernel is the only thing that can truly give memory to a process. My allocator will interact with it directly using:
 
-### `mmap`
+
+### Windows
+#### `VirtualAlloc`
+- Reserves or commits pages of memory in the process's virtual address space.
+- Used to obtain large, page-aligned blocks of memory directly from the Windows kernel.
+
+#### `VirtualFree`
+- Releases or decommits memory previously allocated with `VirtualAlloc`.
+- Ensures memory is returned to the system when no longer needed.
+
+#### `VirtualProtect` (Might use this)
+- Changes the protection on a region of committed pages.
+- Useful for debugging and security (e.g., making pages read-only).
+
+---
+
+### POSIX (Linux/macOS)
+#### `mmap`
 - Requests a chunk of virtual memory from the kernel (page-aligned).
 - Flexible and commonly used in modern allocators.
 
-### `munmap`
+#### `munmap`
 - Releases previously mapped memory back to the kernel.
 - Important for large allocations that shouldn’t stay around forever.
 
-### `mprotect` (Might use this)
+#### `mprotect` (Might use this)
 - Changes access permissions on memory pages.
 - Useful for debugging (e.g., guard pages to catch buffer overflows).
 
-### `sbrk` (legacy) (Not using this btw)
+#### `sbrk` (legacy) (Not using this btw)
 - Grows or shrinks the program’s heap.
 - Included for learning, but less useful in multithreaded environments today.
 
+---
+
+
+This project aims to demonstrate low-level memory management on both POSIX and Windows platforms, using their respective system calls for heap allocation and deallocation.
